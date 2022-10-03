@@ -1,35 +1,67 @@
-// A launch configuration that compiles the extension and then opens it inside a new window
-// Use IntelliSense to learn about possible attributes.
-// Hover to view descriptions of existing attributes.
-// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Run Extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
-			],
-			"outFiles": [
-				"${workspaceFolder}/dist/**/*.js"
-			],
-			"preLaunchTask": "${defaultBuildTask}"
-		},
-		{
-			"name": "Extension Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js",
-				"${workspaceFolder}/dist/**/*.js"
-			],
-			"preLaunchTask": "tasks: watch-tests"
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Python with Node",
+      "program": "${workspaceFolder}/../cpython/builddir/emscripten-node-dl-pthreads-debug/python.js",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
+    {
+      "name": "Launch NodeJS OpenDir Test",
+      "program": "${workspaceFolder}/../opendir_c/open_dir_c/main.js",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "cwd":"${workspaceRoot}/../opendir_c/open_dir_c",
+      "type": "node",
+      "args": ["C:\\Users\\aku91\\source\\repos"]
+  },
+  {
+    "name": "Launch NodeJS RealPath Test",
+    "program": "${workspaceFolder}/../wasm_node_test/realpath_c/main.js",
+    "request": "launch",
+    "console": "integratedTerminal",
+    "cwd":"${workspaceRoot}/../wasm_node_test/realpath_c",
+    "type": "node",
+    "args": ["main.js"]
+},
+  {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "preLaunchTask": "${defaultBuildTask}"
+    },
+    {
+      "name": "Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js",
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "preLaunchTask": "tasks: watch-tests"
+    },
+    {
+      "name": "Patcher",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/resources/patch_cpython/patcher.py",
+      "justMyCode": true,
+      "args": [
+        "--pythonjs",
+        "C:/Users/aku91/source/repos/ubuntu_source/rchiodo-cpython/builddir/emscripten-node-pthreads-dl/python.js",
+        "--outputdir",
+        "./resources/patch_cpython/output"
+      ]
+    }
+  ]
 }

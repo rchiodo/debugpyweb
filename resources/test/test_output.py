@@ -1,0 +1,1 @@
+print("Output from python")

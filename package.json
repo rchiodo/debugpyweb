@@ -16,10 +16,31 @@
   "contributes": {
     "commands": [
       {
-        "command": "debugpyweb.helloWorld",
-        "title": "Hello World"
+        "category": "Python",
+        "command": "debugpyweb.runwithnode",
+        "icon": "$(play)",
+        "title": "Run Python File with Node"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "category": "Python",
+          "command": "debugpyweb.runwithnode",
+          "icon": "$(play)",
+          "title": "Run Python File with Node",
+          "when": "false"
+        }
+      ],
+      "editor/title/run": [
+        {
+          "command": "debugpyweb.runwithnode",
+          "group": "navigation@0",
+          "title": "Run Python File with Node",
+          "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
