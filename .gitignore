@@ -5,3 +5,4 @@ node_modules
 *.vsix
 /resources/patch_cpython/output/
 /resources/debug/debugpy/
+temp

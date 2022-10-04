@@ -8,6 +8,7 @@ var CustomSockets = {
     counter: 0,
     sync_api: undefined,
     connection: undefined,
+    root: undefined,
     next_name: function () {
         CustomSockets.counter += 1;
         return `socket${CustomSockets.counter}`;
@@ -21,6 +22,7 @@ var CustomSockets = {
             }
             // Setup our connection
             CustomSockets.connection = new CustomSockets.sync_api.ClientConnection(parentPort);
+            CustomSockets.root = FS.mount(CustomSockets, {}, null);
         }
     },
     mount: function () {
@@ -61,6 +63,7 @@ var CustomSockets = {
 }
 
 function create_custom_socket() {
+    CustomSockets.init();
     var name = CustomSockets.next_name();
     var node = FS.createNode(CustomSockets.root, name, 49152, 0)
     var sock = {};

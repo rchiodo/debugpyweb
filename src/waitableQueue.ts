@@ -22,4 +22,8 @@ export class WaitableQueue {
             })
         });
     }
+
+    clear() {
+        this._queue = [];
+    }
 }

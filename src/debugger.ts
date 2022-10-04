@@ -28,6 +28,7 @@ class DebugAdapter implements vscode.DebugAdapter {
     dispose() {
         // Should close down the worker
         this._worker?.terminate();
+        this._readQueue.clear();
         
     }
     _handleRequest(message: DebugProtocol.Request) {
@@ -46,7 +47,7 @@ class DebugAdapter implements vscode.DebugAdapter {
         if (!this._connection) {
             // Start debugpy in the worker, with it launching the python file
             // See README https://github.com/Microsoft/DEBUGPY
-            this._worker = new worker.Worker(PATCHED_PYTHON,{ argv: [DEBUGGER_LAUNCHER, '--listen', '5678', '--wait-for-client', this._pythonFile] });
+            this._worker = new worker.Worker(PATCHED_PYTHON,{ argv: [DEBUGGER_LAUNCHER, '--listen', '5678', '--wait-for-client', '--log-to', '~/source/debugpyweb/temp', this._pythonFile] });
 
             // Create the connection to the worker
             this._connection = new sync.ServiceConnection<SocketRequests>(this._worker);
