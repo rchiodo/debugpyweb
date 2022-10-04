@@ -4,3 +4,4 @@ node_modules
 .vscode-test/
 *.vsix
 /resources/patch_cpython/output/
+/resources/debug/debugpy/

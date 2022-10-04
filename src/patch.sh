@@ -1,0 +1,1 @@
+python /home/rich/source/debugpyweb/resources/patch_cpython/patcher.py --pythonjs ~/source/rchiodo-cpython/builddir/emscripten-node-dl-pthreads-debug/python.js --outputdir /home/rich/source/debugpyweb/resources/patch_cpython/output

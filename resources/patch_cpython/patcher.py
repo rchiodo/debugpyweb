@@ -36,7 +36,7 @@ var CustomSockets = {
         },
         read: function (stream, buffer, offset, length, position /* ignored */) {
             CustomSockets.init();
-            var result = CustomSockets.connection.sendRequest('read', { length }, new CustomSockets.sync_api.VariableResult("json"));
+            var result = CustomSockets.connection.sendRequest('socket/read', { length }, new CustomSockets.sync_api.VariableResult("json"));
             if (result.errno !== 0) {
                 return -1;
             }
@@ -46,7 +46,7 @@ var CustomSockets = {
         write: function (stream, buffer, offset, length, position /* ignored */) {
             CustomSockets.init();
             var str = UTF8ArrayToString(buffer, offset, length);
-            var result = CustomSockets.connection.sendRequest('write', { str }, new CustomSockets.sync_api.VariableResult("json"));
+            var result = CustomSockets.connection.sendRequest('socket/write', { message }, new CustomSockets.sync_api.VariableResult("json"));
             if (result.errno !== 0) {
                 return -1;
             }
@@ -54,7 +54,7 @@ var CustomSockets = {
         },
         close: function (stream) {
             CustomSockets.init();
-            CustomSockets.connection.sendRequest('close', {}, new CustomSockets.sync_api.VariableResult("json"));
+            CustomSockets.connection.sendRequest('socket/close', {}, new CustomSockets.sync_api.VariableResult("json"));
             return 0;
         }
     }
@@ -149,7 +149,7 @@ function ___syscall_recvfrom(fd, buf, len, flags, addr, addrlen) {
     console.log("syscall_recvfrom");
     CustomSockets.init();
     // Should block trying to receive data from the other side
-    var result = CustomSockets.connection.sendRequest(`recvfrom`, { length: len }, new CustomSockets.sync_api.VariableResult("json"));
+    var result = CustomSockets.connection.sendRequest(`socket/recvfrom`, { length: len }, new CustomSockets.sync_api.VariableResult("json"));
     var current = get_socket_from_fd(fd);
     if (addr !== 0 && current.info) {
         writeSockaddr(addr, current.info.family, current.info.addr, current.info.port, addrlen);
