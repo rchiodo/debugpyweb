@@ -5,12 +5,15 @@ import * as worker from 'worker_threads';
 import { DEBUGGER_LAUNCHER, PATCHED_PYTHON } from './common';
 import { SocketRequests } from './requests';
 import { WaitableQueue } from './waitableQueue';
+import { TextDecoder, TextEncoder } from 'util';
 
 class DebugAdapter implements vscode.DebugAdapter {
     private _connection: sync.ServiceConnection<SocketRequests> | undefined;
     private _worker: worker.Worker | undefined;
     private _pythonFile: string | undefined;
     private _readQueue = new WaitableQueue();
+    private _textDecoder = new TextDecoder();
+    private _textEncoder = new TextEncoder();
 
     private _didSendMessageEmitter: vscode.EventEmitter<vscode.DebugProtocolMessage> = new vscode.EventEmitter<vscode.DebugProtocolMessage>();
 
@@ -75,18 +78,25 @@ class DebugAdapter implements vscode.DebugAdapter {
     }
 
     async _handleRead(args: {length: number}) {
-        // Read the next message out and send it back
-        const message = await this._readQueue.dequeue();
-        return { errno: 0, data: { value: JSON.stringify(message) } };
+        return this._handleReceiveFrom(args);
     }
     async _handleReceiveFrom(args: {length: number}) {
         // Read the next message out and send it back
         const message = await this._readQueue.dequeue();
-        return { errno: 0, data: { value: JSON.stringify(message) } };
+        const jsonPart = JSON.stringify(message);
+        const jsonPartLength = this._textEncoder.encode(jsonPart).length;
+
+        // DAP requires a content length header separated by \r\n
+        const dapMessage = `Content-Length: ${jsonPartLength}\r\n\r\n${jsonPart}`
+
+        // Turn the message into a byte stream
+        const buffer = this._textEncoder.encode(dapMessage);
+
+        return { errno: 0, data: buffer };
     }
-    async _handleWrite(args: {message: string}) {
+    async _handleWrite(args: {buffer: Uint8Array}) {
         // Read the message into a protocol 
-        const message = JSON.parse(args.message) as DebugProtocol.ProtocolMessage;
+        const message = JSON.parse(this._textDecoder.decode(args.buffer)) as DebugProtocol.ProtocolMessage;
 
         // Send this as an event
         this._didSendMessageEmitter.fire(message);

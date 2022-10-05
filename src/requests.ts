@@ -1,4 +1,3 @@
-import { DebugProtocol } from "@vscode/debugprotocol";
 import { VariableResult } from "@vscode/sync-api-common";
 
 export declare type SocketRequests = {
@@ -9,7 +8,7 @@ export declare type SocketRequests = {
     params: {
         length: number;
     };
-    result: VariableResult<string>;
+    result: VariableResult<Uint8Array>;
 } | {
     /**
      * Wait for bytes from a socket
@@ -18,16 +17,16 @@ export declare type SocketRequests = {
     params: {
         length: number;
     };
-    result: VariableResult<string>;
+    result: VariableResult<Uint8Array>;
 } | {
     /**
      * Write to a socket
      */
     method: 'socket/write';
     params: {
-        message: string
+        buffer: Uint8Array
     };
-    result: VariableResult<string>;
+    result: VariableResult<Uint8Array>;
 } | {
     /**
      * Close the socket

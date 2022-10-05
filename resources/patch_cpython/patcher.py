@@ -29,6 +29,14 @@ var CustomSockets = {
         // return a root node
         return FS.createNode(null, '/', 49152, 0);
     },
+    getBuffer: function(src, len) {
+        return GROWABLE_HEAP_U8().slice(src, src+len);
+    },
+    copyBuffer: function(src, dest, offset, len) {
+        var minLen = Math.min(src.length, len);
+        GROWABLE_HEAP_U8().set(src.slice(0, minLen), dest+offset);
+        return minLen;
+    },
     stream_ops: {
         poll: function (stream) {
             return 0;
@@ -38,17 +46,15 @@ var CustomSockets = {
         },
         read: function (stream, buffer, offset, length, position /* ignored */) {
             CustomSockets.init();
-            var result = CustomSockets.connection.sendRequest('socket/read', { length }, new CustomSockets.sync_api.VariableResult("json"));
+            var result = CustomSockets.connection.sendRequest('socket/read', { length }, new CustomSockets.sync_api.VariableResult("binary"));
             if (result.errno !== 0) {
                 return -1;
             }
-            stringToUTF8Array(result.data.value, buffer, offset, length);
-            return result.data.value.length;
+            return CustomSockets.copyBuffer(result.data, buffer, offset, length);
         },
         write: function (stream, buffer, offset, length, position /* ignored */) {
             CustomSockets.init();
-            var str = UTF8ArrayToString(buffer, offset, length);
-            var result = CustomSockets.connection.sendRequest('socket/write', { message }, new CustomSockets.sync_api.VariableResult("json"));
+            var result = CustomSockets.connection.sendRequest('socket/write', { buffer: CustomSockets.getBuffer(buffer, length) }, new CustomSockets.sync_api.VariableResult("binary"));
             if (result.errno !== 0) {
                 return -1;
             }
@@ -56,7 +62,7 @@ var CustomSockets = {
         },
         close: function (stream) {
             CustomSockets.init();
-            CustomSockets.connection.sendRequest('socket/close', {}, new CustomSockets.sync_api.VariableResult("json"));
+            CustomSockets.connection.sendRequest('socket/close', {}, new CustomSockets.sync_api.VariableResult("binary"));
             return 0;
         }
     }
@@ -152,13 +158,12 @@ function ___syscall_recvfrom(fd, buf, len, flags, addr, addrlen) {
     console.log("syscall_recvfrom");
     CustomSockets.init();
     // Should block trying to receive data from the other side
-    var result = CustomSockets.connection.sendRequest(`socket/recvfrom`, { length: len }, new CustomSockets.sync_api.VariableResult("json"));
+    var result = CustomSockets.connection.sendRequest(`socket/recvfrom`, { length: len }, new CustomSockets.sync_api.VariableResult("binary"));
     var current = get_socket_from_fd(fd);
     if (addr !== 0 && current.info) {
         writeSockaddr(addr, current.info.family, current.info.addr, current.info.port, addrlen);
     }
-    stringToUTF8Array(result.data.value, GROWABLE_HEAP_U8(), buf, len);
-    return result.data.value.length;
+    return CustomSockets.copyBuffer(result.data, buf, 0, len);
 }
 """
 doWritev = """
