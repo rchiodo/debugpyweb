@@ -157,21 +157,43 @@ function ___syscall_recvfrom(fd, buf, len, flags, addr, addrlen) {
     if (addr !== 0 && current.info) {
         writeSockaddr(addr, current.info.family, current.info.addr, current.info.port, addrlen);
     }
-    stringToUTF8Array(result.data.value, HEAP8, buf, len);
+    stringToUTF8Array(result.data.value, GROWABLE_HEAP_U8(), buf, len);
     return result.data.value.length;
 }
 """
 doWritev = """
+var printCharBuffers = [null,[],[]];
+// Create our own out/err so we work inside a VS code extension host
+var printStdout = process.stdout.write.bind(process.stdout);
+var printStderr = process.stderr.write.bind(process.stderr);
+function printChar(stream, curr) {
+  var buffer = printCharBuffers[stream];
+  var logFunc = stream === 1 ? printStdout : printStderr;
+  if (curr === 0) {
+    logFunc(UTF8ArrayToString(buffer, 0));
+    buffer.length = 0;
+  } else {
+    buffer.push(curr);
+  }
+}
+
 function doWritev(stream, iov, iovcnt, offset) {
- console.log(`doWritev with stream ${stream.fd}`)
  var ret = 0;
  for (var i = 0; i < iovcnt; i++) {
   var ptr = GROWABLE_HEAP_U32()[iov >> 2];
   var len = GROWABLE_HEAP_U32()[iov + 4 >> 2];
   iov += 8;
-  var curr = FS.write(stream, GROWABLE_HEAP_I8(), ptr, len, offset);
-  if (curr < 0) return -1;
-  ret += curr;
+  if (stream.fd === 1 || stream.fd === 2) {
+   for (var j = 0; j < len; j++) {
+    printChar(stream.fd, GROWABLE_HEAP_U8()[ptr+j]);
+   }
+   printChar(stream.fd, 0); // Allows printing non single lines
+   ret += len;
+  } else {
+   var curr = FS.write(stream, GROWABLE_HEAP_I8(), ptr, len, offset);
+   if (curr < 0) return -1;
+   ret += curr;
+  }
  }
  return ret;
 }
