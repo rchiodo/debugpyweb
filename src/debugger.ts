@@ -47,7 +47,20 @@ class DebugAdapter implements vscode.DebugAdapter {
         if (!this._connection) {
             // Start debugpy in the worker, with it launching the python file
             // See README https://github.com/Microsoft/DEBUGPY
-            this._worker = new worker.Worker(PATCHED_PYTHON,{ argv: [DEBUGGER_LAUNCHER, '--listen', '5678', '--wait-for-client', '--log-to', '~/source/debugpyweb/temp', this._pythonFile] });
+            //this._worker = new worker.Worker(PATCHED_PYTHON,{ argv: [DEBUGGER_LAUNCHER, '--listen', '5678', '--wait-for-client', '--log-to', '~/source/debugpyweb/temp', this._pythonFile] });
+            this._worker = new worker.Worker(PATCHED_PYTHON, {argv: ['-c', `print("foo from python ${process.pid}")`]});
+            this._worker.on('error', (e) => {
+                console.error(e);
+            })
+            this._worker.on('message', (v) => {
+                console.log(`Worker message: ${v}`);
+            })
+            this._worker.on('messageerror', (e) => {
+                console.log(`Worker error: ${e}`);
+            })
+            this._worker.on('exit', (code) => {
+                console.log(`Debugger exited with code ${code}`);
+            });
 
             // Create the connection to the worker
             this._connection = new sync.ServiceConnection<SocketRequests>(this._worker);

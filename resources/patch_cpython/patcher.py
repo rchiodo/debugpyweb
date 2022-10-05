@@ -161,6 +161,21 @@ function ___syscall_recvfrom(fd, buf, len, flags, addr, addrlen) {
     return result.data.value.length;
 }
 """
+doWritev = """
+function doWritev(stream, iov, iovcnt, offset) {
+ console.log(`doWritev with stream ${stream.fd}`)
+ var ret = 0;
+ for (var i = 0; i < iovcnt; i++) {
+  var ptr = GROWABLE_HEAP_U32()[iov >> 2];
+  var len = GROWABLE_HEAP_U32()[iov + 4 >> 2];
+  iov += 8;
+  var curr = FS.write(stream, GROWABLE_HEAP_I8(), ptr, len, offset);
+  if (curr < 0) return -1;
+  ret += curr;
+ }
+ return ret;
+}
+"""
 
 
 def replace_func(input: str, func_name: str, new_func: str) -> str:
@@ -259,6 +274,7 @@ def patch(input: str, output_dir: str):
     output_contents = replace_func(
         output_contents, "___syscall_recvfrom", syscall_recvfrom
     )
+    output_contents = replace_func(output_contents, "doWritev", doWritev)
 
     # Stick in the prerun hook before the last 'run' entry
     length = len(output_contents)
